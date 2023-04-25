@@ -12,6 +12,8 @@ class Compressor:
         self.is_on = None
         self.wopt = None
 
+        self.qtot_constr = None
+
 
 class Optimizer:
     def __init__(self, compressors = []):
@@ -26,6 +28,11 @@ class Optimizer:
         self.m = Model()
         self.I = range(self.ncomps)
 
+    def replace_Qtot_constr(self, Q):
+        constr = self.m.constr_by_name('Qtot')
+        if constr is not None:
+            self.m.remove(constr)
+        self.m += xsum(self.q[i] for i in self.I) == Q, 'Qtot'
 
     def setup_problem(self):
         for i, c in enumerate(self.compressors):
@@ -36,11 +43,11 @@ class Optimizer:
             #Constraints:
             self.m += self.q[i] <= c.qmax * self.theta[i]
             self.m += self.q[i] >= c.qmin * self.theta[i]
-        self.m += xsum(self.q[i] for i in self.I) == 0.75
+        self.replace_Qtot_constr(0)
 
         self.m.objective = minimize(xsum(self.alpha[i] * self.q[i] + self.beta[i] - self.beta[i] * (1 - self.theta[i]) for i in self.I))
 
     def find_opt(self, Q):
-        #Q = 1.75
+        self.replace_Qtot_constr(Q)
         self.m.optimize()
         return [bool(self.theta[i].x) for i in self.I], [self.q[i].x for i in self.I]
