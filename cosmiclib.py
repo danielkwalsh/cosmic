@@ -27,6 +27,8 @@ class Optimizer:
         self.w = []
 
         self.m = Model()
+        self.m.verbose = 0
+
         self.I = range(self.ncomps)
 
     def replace_Qtot_constr(self, Q):
