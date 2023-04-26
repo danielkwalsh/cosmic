@@ -37,7 +37,6 @@ class Optimizer:
             self.m.remove(constr)
         self.m += xsum(self.q[i] for i in self.I) == Q, 'Qtot'
 
-    # def compute_W(self):
 
     def setup_problem(self):
         for i, c in enumerate(self.compressors):
