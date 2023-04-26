@@ -27,6 +27,8 @@ class Optimizer:
         self.w = []
 
         self.m = Model()
+        self.m.verbose = 0
+
         self.I = range(self.ncomps)
 
     def replace_Qtot_constr(self, Q):
@@ -35,7 +37,6 @@ class Optimizer:
             self.m.remove(constr)
         self.m += xsum(self.q[i] for i in self.I) == Q, 'Qtot'
 
-    # def compute_W(self):
 
     def setup_problem(self):
         for i, c in enumerate(self.compressors):
@@ -64,8 +65,12 @@ class Optimizer:
             q_opt.append(self.q[i].x)
             w_opt.append(self.w[i].x)
             outdict['compressors'].update({c.name: {'theta': theta_opt, 'q': q_opt[i], 'w': w_opt[i]}})
-        outdict['Qtot'] = sum(q_opt)
-        outdict['Wtot'] = sum(w_opt)
+        if None in q_opt:
+            outdict['Qtot'] = None
+            outdict['Wtot'] = None
+        else:
+            outdict['Qtot'] = sum(q_opt)
+            outdict['Wtot'] = sum(w_opt)
         outdict['Success'] = (status == OptimizationStatus.OPTIMAL)
         outdict['OptimizationStatus'] = status
         return outdict
