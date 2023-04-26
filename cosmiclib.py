@@ -66,8 +66,12 @@ class Optimizer:
             q_opt.append(self.q[i].x)
             w_opt.append(self.w[i].x)
             outdict['compressors'].update({c.name: {'theta': theta_opt, 'q': q_opt[i], 'w': w_opt[i]}})
-        outdict['Qtot'] = sum(q_opt)
-        outdict['Wtot'] = sum(w_opt)
+        if None in q_opt:
+            outdict['Qtot'] = None
+            outdict['Wtot'] = None
+        else:
+            outdict['Qtot'] = sum(q_opt)
+            outdict['Wtot'] = sum(w_opt)
         outdict['Success'] = (status == OptimizationStatus.OPTIMAL)
         outdict['OptimizationStatus'] = status
         return outdict
