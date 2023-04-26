@@ -1,4 +1,9 @@
 from mip import Model, xsum, minimize, BINARY, OptimizationStatus
+import plotly.express as px
+import plotly.graph_objs as go
+from plotly.subplots import make_subplots
+import pandas as pd
+import numpy as np
 
 class Compressor:
     def __init__(self, name, qmin=None, qmax=None, wmin=None, wmax=None): #TODO: Add checks on min/max values
@@ -74,3 +79,44 @@ class Optimizer:
         outdict['Success'] = (status == OptimizationStatus.OPTIMAL)
         outdict['OptimizationStatus'] = status
         return outdict
+
+def generate_sequence_plot(opt_obj):
+    def make_row(Qtot, sol_dict):
+        dict_data = {'Qtot': [Qtot]}
+        dict_data.update({f'{c}: q': [sol_dict['compressors'][c]['q']] for c in comp_names})
+        dict_data.update({f'{c}: w': [sol_dict['compressors'][c]['w']] for c in comp_names})
+        return pd.DataFrame(dict_data)
+    compressors = opt_obj.compressors
+    Qmax = sum([c.qmax for c in compressors])
+    comp_names = [c.name for c in compressors]
+    my_optimizer = Optimizer(compressors=compressors)
+    my_optimizer.setup_problem()
+
+    df = None
+    Qmax_plot = Qmax * 1.1
+    for Qtot in np.arange(0,Qmax_plot,0.01):
+        solution = my_optimizer.find_opt(Qtot)
+        if df is None:
+            df = make_row(Qtot, solution)
+        else:
+            df = pd.concat([df, make_row(Qtot, solution)])
+
+    def get_color(i):
+        colors = px.colors.qualitative.Plotly
+        size = len(colors)
+        meta = i // size
+        sub = i % size
+        col = px.colors.hex_to_rgb(colors[sub])
+        fac = 0.9**meta
+        return f'rgb({int(fac*col[0])}, {int(fac*col[1])}, {int(fac*col[2])})'
+    # Create a stacked area chart
+    fig = make_subplots(rows=2, cols=1, shared_xaxes=True)
+    for i, c in enumerate(comp_names):
+        fig.add_trace(go.Scatter(x=df['Qtot'], y=df[f'{c}: q'], stackgroup='1', name=c, fillcolor=get_color(i), mode= 'none'), row=1, col=1)
+        fig.add_trace(go.Scatter(x=df['Qtot'], y=df[f'{c}: w'], stackgroup='1', name=c, fillcolor=get_color(i), showlegend=False, mode= 'none'), row=2, col=1)
+    # Customize the chart layout
+    fig.update_layout(title='Optimal Compressor Sequencing', xaxis2_title='Qtot', yaxis_title='q', yaxis2_title='w', height=600)
+    # Display the chart
+    #fig.show()
+    return fig
+
