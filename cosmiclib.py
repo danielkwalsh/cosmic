@@ -89,13 +89,12 @@ def generate_sequence_plot(opt_obj, *args, **kwargs):
     compressors = opt_obj.compressors
     Qmax = sum([c.qmax for c in compressors])
     comp_names = [c.name for c in compressors]
-    my_optimizer = Optimizer(compressors=compressors)
-    my_optimizer.setup_problem()
+    opt_obj.setup_problem()
 
     df = None
     Qmax_plot = Qmax * 1.1
     for Qtot in np.arange(0,Qmax_plot,Qmax_plot/1000):
-        solution = my_optimizer.find_opt(Qtot, *args, **kwargs)
+        solution = opt_obj.find_opt(Qtot, *args, **kwargs)
         if df is None:
             df = make_row(Qtot, solution)
         else:
