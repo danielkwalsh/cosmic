@@ -153,6 +153,9 @@ class Counterfactualgenerator:
     def find_opt(self, Q, cf_option, sequence_cf):
         self.find_counterfactual(Q, cf_option, sequence_cf)
         return self.post_process_counterfactual()
+    
+    def setup_problem(self):
+        return None
         
 
 
