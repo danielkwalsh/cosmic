@@ -97,6 +97,7 @@ class Counterfactualgenerator:
 
     def find_counterfactual(self, Q, cf_option, sequence_cf = []): # sequence_cf is neeeded when cf_option = 1
         Q_rem = Q
+        self.cf_option = cf_option
         self.cf_sequence = sequence_cf # Preferred sequence set by the user
         if Q > sum(self.compressors[i].qmax for i, c in enumerate(self.compressors)):
             self.q_cf = [None] * self.ncomps
@@ -116,7 +117,7 @@ class Counterfactualgenerator:
                     else:
                         self.q_cf[compressor_index] = Q_rem
                         Q_rem = Q_rem- float(self.q_cf[compressor_index])
-            if cf_option == 2: # Less smart CF (distributes load evenly among compressors)
+            elif cf_option == 2: # Less smart CF (distributes load evenly among compressors)
                 den = sum(self.compressors[i].qmax for i, c in enumerate(self.compressors)) # Sum of max capacitiies of all compressors 
                 infeasible_compressors = []
                 for i, c in enumerate(self.compressors): # This loop sets initial assignment 
@@ -148,6 +149,11 @@ class Counterfactualgenerator:
         outdict_cf['Success'] = (self.flag ==1)
         outdict_cf['OptimizationStatus'] = None
         return outdict_cf
+    
+    def find_opt(self, Q, cf_option, sequence_cf):
+        self.find_counterfactual(Q, cf_option, sequence_cf)
+        return self.post_process_counterfactual()
+        
 
 
             
