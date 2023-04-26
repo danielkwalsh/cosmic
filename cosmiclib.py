@@ -94,7 +94,7 @@ def generate_sequence_plot(opt_obj):
 
     df = None
     Qmax_plot = Qmax * 1.1
-    for Qtot in np.arange(0,Qmax_plot,0.01):
+    for Qtot in np.arange(0,Qmax_plot,Qmax_plot/1000):
         solution = my_optimizer.find_opt(Qtot)
         if df is None:
             df = make_row(Qtot, solution)
